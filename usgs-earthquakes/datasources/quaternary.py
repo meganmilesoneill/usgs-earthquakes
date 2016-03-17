@@ -25,11 +25,13 @@ class QuaternaryLoader():
 
 		try:
 			if not os.path.exists("qfaults.zip"):
+				print("Downloading Quaternary Fault Shape files.")
 				qfaults = requests.get(QuaternaryLoader._config.quaternary["shapeFileUrl"])
 				with open("qfaults.zip", "wb") as faultdata:
 					faultdata.write(qfaults.content)
 
-				with open("qfaults.zip", "r") as zippedfaults:
+				print("Extracting Quaternary Fault Shape Files.")
+				with ZipFile("qfaults.zip", "r") as zippedfaults:
 					zippedfaults.extractall("qfaults")
 
 		except Exception as e:
