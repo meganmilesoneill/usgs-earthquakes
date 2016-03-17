@@ -43,8 +43,3 @@ This library was built using the Anaconda Python distribution on Mac OSX (Yosemi
 * update the configuration file (configuration.json)
 * run unittests to ensure that setup was successful
 * run load_all_data.py
-
-## To Do:
-* Add support for filtering the data based on the USGS search criteria
-* Add support for filtering based on political boundaries such as states and countries
-* Write import messages to log file for data quality analysis
