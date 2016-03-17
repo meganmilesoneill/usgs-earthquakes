@@ -1,0 +1,38 @@
+{
+	"default": {
+		"database" : {
+			"provider" : "postgres",
+			"server": "localhost",
+			"name": "usgs_earthquakes",
+			"user": "system_user",
+			"password": ""
+		},
+		"comcat" : {
+			"apiUrl" : "http://earthquake.usgs.gov/fdsnws/event/1/query.geojson?%s",
+			"startDate" : "01-01-2013",
+			"loaderConfigFile": "comcat.config",
+			"productsToLoad": "focal-mechanism"
+		},
+		"quaternary": {
+			"shapeFileUrl": "http://earthquake.usgs.gov/hazards/qfaults/qfaults.zip",
+			"shapeFilePath": "./qfaults/sectionsALL.shp"
+		}
+	},
+	"test": {
+		"database" : {
+			"provider" : "postgres",
+			"server": "localhost",
+			"name": "usgs_earthquakes_test",
+			"user": "test_user",
+			"password": ""
+		},
+		"comcat" : {
+			"apiUrl" : "comcat_test_data.json",
+			"startDate" : "01-01-2013",
+			"loaderConfigFile": "testcomcat.config",
+			"productsToLoad": "focal-mechanism"
+		}
+
+	}
+
+}
