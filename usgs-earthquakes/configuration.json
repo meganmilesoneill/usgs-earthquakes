@@ -11,7 +11,7 @@
 			"apiUrl" : "http://earthquake.usgs.gov/fdsnws/event/1/query.geojson?%s",
 			"startDate" : "01-01-2013",
 			"loaderConfigFile": "comcat.config",
-			"productsToLoad": "focal-mechanism"
+			"productsToLoad": "focal-mechanism,moment-tensor"
 		},
 		"quaternary": {
 			"shapeFileUrl": "http://earthquake.usgs.gov/hazards/qfaults/qfaults.zip",

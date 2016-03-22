@@ -41,6 +41,7 @@ def createDatabase(config):
 	conn.close()
 
 	earthquakes.FocalMechanism.__table__.create(engine)
+	earthquakes.MomentTensor.__table__.create(engine)
 
 	print("Loading fault data since this is only done once.")
 	qloader = quaternary.QuaternaryLoader(config)

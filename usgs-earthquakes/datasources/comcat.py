@@ -112,43 +112,37 @@ class ComcatLoader():
 		#print("updateEarthquakeFocalMechanism complete")
 
 
-	def updateEarthquakeDetail(self, session, earthquake):
-		try:
-			loadDetail = False
-			productsToLoad = ComcatLoader._config.comcat["productsToLoad"].split(",")
-			for productName in productsToLoad:
-				if productName in earthquake.types:
-					loadDetail = True
-					break;
+	def updateEarthquakeMomentTensor(self, session, earthquake, product):
+		print("updateEarthquakeMomentTensor starting")
+		momentTensor = earthquakes.MomentTensor()
 
-			if not loadDetail:
-				return
+		momentTensor.code = self.getJsonValue(product, "code")
+		momentTensor.preferredWeight = self.getJsonValue(product, "preferredWeight")
+		momentTensor.indexid = self.getJsonValue(product, "indexid")
+		momentTensor.indexTime = self.getJsonValue(product, "indexTime")
+		momentTensor.updateTime = self.getJsonValue(product, "updateTime")
+		momentTensor.source = self.getJsonValue(product, "source")
+		momentTensor.mrr = self.getJsonValue(product["properties"], "tensor-mrr")
+		momentTensor.mtt = self.getJsonValue(product["properties"], "tensor-mtt")
+		momentTensor.mpp = self.getJsonValue(product["properties"], "tensor-mpp")
+		momentTensor.mrt = self.getJsonValue(product["properties"], "tensor-mrt")
+		momentTensor.mrp = self.getJsonValue(product["properties"], "tensor-mrp")
+		momentTensor.mtp = self.getJsonValue(product["properties"], "tensor-mtp")
+		momentTensor.latitude = self.getJsonValue(product["properties"], "derived-latitude")
+		momentTensor.longitude = self.getJsonValue(product["properties"], "derived-longitude")
+		momentTensor.depth = self.getJsonValue(product["properties"], "derived-depth")
+		momentTensor.sourcetimeDuration = self.getJsonValue(product["properties"], "sourcetime-duration")
 
-			print("loading detailUrl: %s" % earthquake.detail)
-			response = requests.get(earthquake.detail)
-			if response is None:
-				print("Detail url not loaded")
-				return
+		momentTensor.earthquake = earthquake
+		#print("about to save momentTensor for %s" % momentTensor.earthquake.eventid)
+		session.add(momentTensor)
+		session.commit()
+		print("updateEarthquakeMomentTensor complete")
 
-			detailJson = response.json()
-			print("getting products")
-			products = self.getJsonValue(detailJson["properties"], "products")
-
-			print("iterating through products")
-			for productName in products:
-				if productName in productsToLoad:
-					print("getting product list for productType: %s" % productName)
-					productList = products[productName]
-
-					for product in productList:
-						if product["type"] == "focal-mechanism":
-							self.updateEarthquakeFocalMechanism(session, earthquake, product)
-
-		except Exception as e:
-			print("ERROR importing earthquake details:", e)
 
 	def processDetailError(self, request, exception):
 		print("Request failed: %s" % exception)
+
 
 	def processDetailResponse(self, response, **kwargs):
 		engine = create_engine('{0}://{1}/{2}'.format(ComcatLoader._config.database["provider"], ComcatLoader._config.database["server"], ComcatLoader._config.database["name"]), echo=False)
@@ -175,6 +169,8 @@ class ComcatLoader():
 					for product in productList:
 						if product["type"] == "focal-mechanism":
 							self.updateEarthquakeFocalMechanism(session, earthquake, product)
+						if product["type"] == "moment-tensor":
+							self.updateEarthquakeMomentTensor(session, earthquake, product)
 
 
 			print("processing detail response - complete")
@@ -220,8 +216,9 @@ class ComcatLoader():
 				eventid = feature.GetField("id")
 
 				types = feature.GetField("types")
+				availableProducts = types.split(",")
 				for productName in productsToLoad:
-					if productName in types:
+					if productName in availableProducts:
 						loadDetail = True
 						break;
 
