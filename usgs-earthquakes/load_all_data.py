@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from datasources import comcat, quaternary
@@ -40,27 +41,42 @@ def createDatabase(config):
 	conn.execute("CREATE INDEX idx_earthquake_geometry ON earthquake USING GIST(geometry);")
 	conn.close()
 
+	earthquakes.EarthquakeFaultLink.__table__.create(engine)
 	earthquakes.FocalMechanism.__table__.create(engine)
 	earthquakes.MomentTensor.__table__.create(engine)
-
-	print("Loading fault data since this is only done once.")
-	qloader = quaternary.QuaternaryLoader(config)
-	qloader.update()
 
 	print("Resetting last success date")
 	cloader = comcat.ComcatLoader(config)
 	cloader.reset()
 
+def updateFaultData(config):
+	print("Loading fault data.")
+	qloader = quaternary.QuaternaryLoader(config)
+	qloader.update()
 
 def updateEarthquakeData(config):
+	print("Loading earthquake data.")
 	loader = comcat.ComcatLoader(config)
-	loader.update()
+	loader.update(withNearestFaults = True)
 
+def updateNearestEarthquakes(config):
+	databaseUrl = '{0}://{1}/{2}'.format(config.database["provider"], config.database["server"], config.database["name"])
+	engine = create_engine(databaseUrl, echo=False)
+	Session = sessionmaker(bind=engine)
+	session = Session()
+	query = session.query(earthquakes.Fault)
+
+	for fault in query:
+		fault.setNearestEarthquakes(session, 5000)
+
+	session.close()
 
 def main():
 	config = configuration.Configuration()
 	createDatabase(config)
+	updateFaultData(config)
 	updateEarthquakeData(config)
+	# updateNearestEarthquakes(config)
 
 	print("load complete.")
 

@@ -179,7 +179,7 @@ class ComcatLoader():
 		finally:
 			session.close()
 
-	def updateEarthquakes(self, session, startdate, enddate = None):
+	def updateEarthquakes(self, session, startdate, enddate = None, withNearestFaults = False):
 
 		detailUrlRequests = []
 		productsToLoad = ComcatLoader._config.comcat["productsToLoad"].split(",")
@@ -266,6 +266,8 @@ class ComcatLoader():
 							print("loading detail (%d) urls" % len(detailUrlRequests))
 							grequests.map(detailUrlRequests, exception_handler=self.processDetailError)
 							detailUrlRequests = []
+					if withNearestFaults:
+						earthquake.setNearestFaults(session, 5000)
 
 				except Exception as e:
 					print('ERROR creating earthquake record: %s\n%s' % (progress_text, e))
@@ -280,7 +282,7 @@ class ComcatLoader():
 		self.setLastSuccess(datetime.utcfromtimestamp(ts))
 
 
-	def update(self):
+	def update(self, withNearestFaults = False):
 		engine = create_engine('{0}://{1}/{2}'.format(ComcatLoader._config.database["provider"], ComcatLoader._config.database["server"], ComcatLoader._config.database["name"]), echo=False)
 		Session = sessionmaker(bind=engine)
 		session = Session()
@@ -292,7 +294,7 @@ class ComcatLoader():
 
 		while(startdate <= today):
 			print("Importing next range")
-			self.updateEarthquakes(session, startdate, enddate)
+			self.updateEarthquakes(session, startdate, enddate, withNearestFaults)
 
 			startdate, enddate = self.getNextTimeRange()
 
