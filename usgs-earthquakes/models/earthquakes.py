@@ -91,6 +91,7 @@ class FocalMechanism(Base):
     eventtime = Column(String)
     eventParametersPublicID = Column(String)
     quakemlPublicid = Column(String)
+    is_primary = Column(Boolean)
     earthquake = relationship("Earthquake", back_populates="focalMechanisms")
 
 class MomentTensor(Base):
@@ -145,8 +146,10 @@ class MomentTensor(Base):
     latitude = Column(Numeric)
     longitude = Column(Numeric)
     depth = Column(Numeric)
+    is_primary = Column(Boolean)
     earthquake = relationship("Earthquake", back_populates="momentTensors")
 
+    
 class Fault(Base):
     __tablename__ = "fault"
 
