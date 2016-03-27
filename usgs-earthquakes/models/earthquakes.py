@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy import Table, Column, Integer, BigInteger, String, Numeric, ForeignKey
+from sqlalchemy import Table, Column, Integer, BigInteger, String, Numeric, Boolean, ForeignKey
 from sqlalchemy.orm import mapper, relationship
 from geoalchemy2 import Geometry, Geography
 
@@ -45,6 +45,20 @@ class Earthquake(Base):
     momentTensors = relationship("MomentTensor", back_populates='earthquake', cascade="all, delete, delete-orphan")
     faults = relationship("Fault", secondary='earthquake_fault', back_populates="earthquakes")
 
+    def setPrimaryProducts(self, session):
+        focalMechanisms = session.query(FocalMechanism).filter_by(earthquake_id = self.id).order_by(FocalMechanism.preferredWeight.desc(), FocalMechanism.updateTime.desc())
+        is_first = True
+        for focalMechanism in focalMechanisms:
+            focalMechanism.is_primary = is_first
+            is_first = False
+
+        momentTensors = session.query(MomentTensor).filter_by(earthquake_id = self.id).order_by(MomentTensor.preferredWeight.desc(), MomentTensor.updateTime.desc())
+        is_first = True
+        for momentTensor in momentTensors:
+            momentTensor.is_primary = is_first
+            is_first = False
+
+        session.commit()
 
     def setNearestFaults(self, session, distance):
         session.execute(
@@ -91,7 +105,7 @@ class FocalMechanism(Base):
     eventtime = Column(String)
     eventParametersPublicID = Column(String)
     quakemlPublicid = Column(String)
-    is_primary = Column(Boolean)
+    is_primary = Column(Boolean, default=False)
     earthquake = relationship("Earthquake", back_populates="focalMechanisms")
 
 class MomentTensor(Base):
@@ -146,10 +160,10 @@ class MomentTensor(Base):
     latitude = Column(Numeric)
     longitude = Column(Numeric)
     depth = Column(Numeric)
-    is_primary = Column(Boolean)
+    is_primary = Column(Boolean, default=False)
     earthquake = relationship("Earthquake", back_populates="momentTensors")
 
-    
+
 class Fault(Base):
     __tablename__ = "fault"
 
