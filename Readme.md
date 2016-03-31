@@ -24,7 +24,9 @@ http://earthquake.usgs.gov/hazards/qfaults/
 
 ### Notes on data download decisions
 USGS earthquake data comes in summary and detail formats.  The summary view does not include product data such as focal-mechanism and moment-tensor.  There are two methods for retrieving this data:
+
 ** Use the producttypes filter from USGS to return only those events that have the product data in question
+
 ** Download summary data, and make separate requests for each event that has the product data (the "types" property lists products available for a given event.)
 
 Given that it may be of interest to see all records, I wanted to provide that option by using the second method.  The first method is also largely covered by another library provided by USGS: https://github.com/usgs/libcomcat
